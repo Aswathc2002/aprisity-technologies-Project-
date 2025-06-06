@@ -1,0 +1,36 @@
+!pip install -q scikit-learn pandas numpy sentence-transformers
+
+
+import pandas as pd
+from sentence_transformers import SentenceTransformer, util
+
+
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+
+job_description = """
+We are looking for a Data Analyst proficient in SQL, Python, and Tableau.
+The candidate should have experience with data visualization, dashboards, and statistical analysis.
+"""
+
+resumes = [
+    "Experienced in data visualization and dashboard creation using Tableau. Proficient in SQL and Excel.",
+    "Python developer with knowledge of Django, APIs, and machine learning models.",
+    "Skilled in R, statistical modeling, data cleaning, and reporting. Familiar with SQL and Excel.",
+    "Expert in Tableau, Power BI, and creating interactive dashboards. Good command over SQL and data analytics.",
+]
+
+
+job_embed = model.encode(job_description, convert_to_tensor=True)
+resume_embeddings = model.encode(resumes, convert_to_tensor=True)
+
+
+similarities = util.cos_sim(job_embed, resume_embeddings)[0]
+
+
+ranking = sorted(list(enumerate(similarities)), key=lambda x: x[1], reverse=True)
+
+print("📄 Resume Ranking Based on Job Description:\n")
+for idx, score in ranking:
+    print(f"Resume {idx+1} | Match Score: {score:.2f}")
+    print(f"Content: {resumes[idx]}\n")
